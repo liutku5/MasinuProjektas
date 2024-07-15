@@ -1,5 +1,6 @@
 package org.example;
 
+import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -43,15 +44,51 @@ public class AutomobileHandler implements HttpHandler {
         os.write(response.getBytes());
         os.close();
     }
+
+    private void handleDeleteAutomobile(HttpExchange exchange) throws IOException {
+        User userToDelete = requestUser(exchange);
+        boolean removed = users.removeIf(u -> u.getId() == userToDelete.getId());
+        if (removed) {
+            saveUsers();
+            String response = "User has been deleted successfully";
+            exchange.sendResponseHeaders(200, response.getBytes().length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        } else {
+            exchange.sendResponseHeaders(404, -1);
+        }
+    }
+
     private void handleCreateAutomobile(HttpExchange exchange) throws IOException {
+        // Assuming the data is passed as JSON in the request body
         InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), "utf-8");
         BufferedReader br = new BufferedReader(isr);
-        String body = br.lines().collect(Collectors.joining());
-        Automobile auto = gson.fromJson(body, Automobile.class);
-        Automobile.createAutomobile(auto.getManufacturer(), auto.getModel(), auto.getReleaseYear());
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = br.readLine()) != null) {
+            sb.append(line);
+        }
+        br.close();
+
+        // Convert JSON data to Java object (if needed)
+        // Example: Assuming JSON data is {"manufacturer":"Toyota","model":"Camry","releaseYear":2023}
+        Gson gson = new Gson();
+        Automobile automobile = gson.fromJson(sb.toString(), Automobile.class);
+
+        // Create automobile in database
+        createAutomobile(automobile.getManufacturer(), automobile.getModel(), automobile.getReleaseYear());
+
+        // Prepare response
         String response = "Automobile created successfully";
-        sendResponse(exchange, response, 200);
+
+        // Send response back to client
+        exchange.sendResponseHeaders(200, response.getBytes().length);
+        OutputStream os = exchange.getResponseBody();
+        os.write(response.getBytes());
+        os.close();
     }
+
     private void handleUpdateAutomobile(HttpExchange exchange) throws IOException {
         InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), "utf-8");
         BufferedReader br = new BufferedReader(isr);
@@ -62,16 +99,19 @@ public class AutomobileHandler implements HttpHandler {
         sendResponse(exchange, response, 200);
     }
 
-    private void handleDeleteAutomobile(HttpExchange exchange) throws IOException {
-        InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), "utf-8");
-        BufferedReader br = new BufferedReader(isr);
-        String body = br.lines().collect(Collectors.joining());
-        Map<String, Object> params = gson.fromJson(body, Map.class);
-        long id = ((Double) params.get("id")).longValue();
-        Automobile.deleteAutomobile(id);
-        String response = "Automobile deleted successfully";
-        sendResponse(exchange, response, 200);
-    }
+//    private void handleDeleteAutomobile(HttpExchange exchange) throws IOException {
+//
+//        String query = exchange.getRequestURI().getQuery();
+//        long automobileId = Long.parseLong(query.split("=")[1]); // Extract automobile ID from query parameter
+//        deleteAutomobile(automobileId);
+//        String response = "Automobile with ID " + automobileId + " deleted successfully";
+//
+//        exchange.sendResponseHeaders(200, response.getBytes().length);
+//        OutputStream os = exchange.getResponseBody();
+//        os.write(response.getBytes());
+//        os.close();
+//    }
+
 
     private void handleGetAutomobileById(HttpExchange exchange) throws IOException {
         String query = exchange.getRequestURI().getQuery();
