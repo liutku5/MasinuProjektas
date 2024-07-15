@@ -7,11 +7,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.ArrayList;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 
 public class Main {
-    public static List<Automobile> automobiles = new ArrayList<>();
+//    public static List<Automobile> automobiles = new ArrayList<>();
     public static Gson gson = new Gson();
 
     public static void main(String[] args) throws IOException {
@@ -34,4 +35,5 @@ public class Main {
         }
         return con;
     }
+
 }

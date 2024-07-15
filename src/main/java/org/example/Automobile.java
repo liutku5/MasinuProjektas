@@ -1,6 +1,7 @@
 package org.example;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class Automobile {
 
     public static ArrayList<Automobile> selectAll() {
         ArrayList<Automobile> automobiles = new ArrayList<>();
-        String query = "SELECT * FROM vehicles";
+        String query = "SELECT * FROM automobiles";
         try {
             Connection con = connect();
             Statement stmt = con.createStatement();
@@ -36,13 +37,83 @@ public class Automobile {
                         rs.getLong("id"),
                         rs.getString("manufacturer"),
                         rs.getString("model"),
-                        rs.getInt("releaseYear"),
-                        automobiles.add(auto);
+                        rs.getInt("release_Year"));
+                automobiles.add(auto);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return automobiles;
+    }
+
+    public static Automobile findAutomobileById(long id) {
+
+        String query = "SELECT * FROM automobiles where id = ?";
+        Automobile auto = null;
+        try {
+            Connection con = Main.connect();
+            PreparedStatement pst = con.prepareStatement(query);
+            pst.setLong(1, id);
+            ResultSet rs = pst.executeQuery();
+            while ((rs.next())) {
+                auto = new Automobile(rs.getLong("id"), rs.getString("manufacturer"), rs.getString("model"), rs.getInt("release_Year"));
+            }
+            con.close();
+            pst.close();
+            rs.close();
+        } catch (Exception e) {
+            System.out.println("Failed to find automobile.");
+        }
+        return auto;
+    }
+
+
+    public static void createAutomobile(String manufacturer, String model, int release_Year) {
+
+        String query = "INSERT INTO `automobiles`(`manufacturer`, `model`, `release_Year`) VALUES (?, ?, ?)";
+        try {
+            Connection con = Main.connect();
+            PreparedStatement pst = con.prepareStatement(query);
+            pst.setString(1, manufacturer);
+            pst.setString(2, model);
+            pst.setInt(3, release_Year);
+            pst.executeUpdate();
+            con.close();
+            pst.close();
+        } catch (Exception e) {
+            System.out.println("Failed to add automobile to the list!");
+        }
+    }
+
+    public void updateAutomobile() {
+        String query = "UPDATE `automobiles` SET `manufacturer`= ? ,`model`= ? ,`release_Year`= ? WHERE id = ?";
+        try {
+            Connection con = Main.connect();
+            PreparedStatement pst = con.prepareStatement(query);
+            pst.setString(1, this.manufacturer);
+            pst.setString(2, this.model);
+            pst.setInt(3, this.releaseYear);
+            pst.setLong(4, this.id);
+            pst.executeUpdate();
+            con.close();
+            pst.close();
+        } catch (Exception e) {
+            System.out.println("Failed to update automobile!");
+        }
+    }
+
+    public static void deleteAutomobile(long id) {
+        String query = "DELETE FROM `automobiles` WHERE id = ?";
+        try {
+            Connection con = Main.connect();
+            PreparedStatement pst = con.prepareStatement(query);
+            pst.setLong(1, id);
+            pst.executeUpdate();
+            con.close();
+            pst.close();
+        } catch (Exception e) {
+            System.out.println("Failed to delete automobiles!");
+        }
     }
 
     public long getId() {
