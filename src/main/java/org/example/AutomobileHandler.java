@@ -45,13 +45,35 @@ public class AutomobileHandler implements HttpHandler {
     }
 
     private void handleCreateAutomobile(HttpExchange exchange) throws IOException {
+        System.out.println("create");
         InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), "utf-8");
         BufferedReader br = new BufferedReader(isr);
-        String body = br.lines().collect(Collectors.joining());
-        Automobile auto = gson.fromJson(body, Automobile.class);
-        Automobile.createAutomobile(auto.getManufacturer(), auto.getModel(), auto.getReleaseYear());
-        String response = "Automobile created successfully";
-        sendResponse(exchange, response, 200);
+        StringBuilder json = new StringBuilder();
+        String line;
+        while ((line = br.readLine()) != null) {
+            json.append(line);
+            System.out.println(line);
+        }
+        br.close();
+        isr.close();
+
+        Automobile newAutomobile = gson.fromJson(json.toString(), Automobile.class);
+        String query = "INSERT INTO `automobiles` (manufacturer, model, release_Year) VALUES (?, ?, ?)";
+        try (Connection con = Main.connect(); PreparedStatement pst = con.prepareStatement(query)) {
+            pst.setString(1, newAutomobile.getManufacturer());
+            pst.setString(2, newAutomobile.getModel());
+            pst.setInt(3, newAutomobile.getReleaseYear());
+            int rowsAffected = pst.executeUpdate();
+            if (rowsAffected > 0) {
+                String response = "Automobile has been created successfully";
+                sendResponse(exchange, response, 201);
+            } else {
+                sendResponse(exchange, "Failed to create automobile", 500);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendResponse(exchange, "Failed to create automobile", 500);
+        }
     }
 
     private void handleUpdateAutomobile(HttpExchange exchange) throws IOException {
@@ -91,9 +113,6 @@ public class AutomobileHandler implements HttpHandler {
             sendResponse(exchange, "Failed to delete automobile", 500);
         }
     }
-
-
-
 
 private void handleGetAutomobileById(HttpExchange exchange) throws IOException {
     String query = exchange.getRequestURI().getQuery();
