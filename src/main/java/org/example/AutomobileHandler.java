@@ -5,6 +5,8 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 import java.io.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -63,42 +65,61 @@ public class AutomobileHandler implements HttpHandler {
     }
 
     private void handleDeleteAutomobile(HttpExchange exchange) throws IOException {
-        String query = exchange.getRequestURI().getQuery();
-        long automobileId = Long.parseLong(query.split("=")[1]);
-        deleteAutomobile(automobileId);
-        String response = "Automobile with ID " + automobileId + " deleted successfully";
+        InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), "utf-8");
+        BufferedReader br = new BufferedReader(isr);
+        StringBuilder json = new StringBuilder();
+        String line;
+        while ((line = br.readLine()) != null) {
+            json.append(line);
+        }
+        br.close();
+        isr.close();
 
-        exchange.sendResponseHeaders(200, response.getBytes().length);
-        OutputStream os = exchange.getResponseBody();
-        os.write(response.getBytes());
-        os.close();
+        Automobile deleteAutomobile = gson.fromJson(json.toString(), Automobile.class);
+        String query = "DELETE FROM `automobiles` WHERE id = ?";
+        try (Connection con = Main.connect(); PreparedStatement pst = con.prepareStatement(query)) {
+            pst.setLong(1, deleteAutomobile.getId());
+            int rowsAffected = pst.executeUpdate();
+            if (rowsAffected > 0) {
+                String response = "Automobile has been deleted successfully";
+                sendResponse(exchange, response, 200);
+            } else {
+                sendResponse(exchange, "Automobile not found", 404);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendResponse(exchange, "Failed to delete automobile", 500);
+        }
     }
 
 
-    private void handleGetAutomobileById(HttpExchange exchange) throws IOException {
-        String query = exchange.getRequestURI().getQuery();
-        long id = Long.parseLong(query.split("=")[1]);
-        Automobile auto = Automobile.findAutomobileById(id);
-        String response = gson.toJson(auto);
-        sendResponse(exchange, response, 200);
-    }
-    private void sendResponse(HttpExchange exchange, String response, int statusCode) throws IOException {
-        exchange.sendResponseHeaders(statusCode, response.getBytes().length);
-        OutputStream os = exchange.getResponseBody();
-        os.write(response.getBytes());
-        os.close();
-    }
 
-    private void handleCORS(HttpExchange exchange) {
-        // Allow requests from all origins
-        exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
-        // Allow specific methods
-        exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-        // Allow specific headers
-        exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "*");
-        // Allow credentials, if needed
-        exchange.getResponseHeaders().set("Access-Control-Allow-Credentials", "true");
-    }
+
+private void handleGetAutomobileById(HttpExchange exchange) throws IOException {
+    String query = exchange.getRequestURI().getQuery();
+    long id = Long.parseLong(query.split("=")[1]);
+    Automobile auto = Automobile.findAutomobileById(id);
+    String response = gson.toJson(auto);
+    sendResponse(exchange, response, 200);
+}
+
+private void sendResponse(HttpExchange exchange, String response, int statusCode) throws IOException {
+    exchange.sendResponseHeaders(statusCode, response.getBytes().length);
+    OutputStream os = exchange.getResponseBody();
+    os.write(response.getBytes());
+    os.close();
+}
+
+private void handleCORS(HttpExchange exchange) {
+    // Allow requests from all origins
+    exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+    // Allow specific methods
+    exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+    // Allow specific headers
+    exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "*");
+    // Allow credentials, if needed
+    exchange.getResponseHeaders().set("Access-Control-Allow-Credentials", "true");
+}
 
 }
 
