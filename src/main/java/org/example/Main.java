@@ -35,5 +35,17 @@ public class Main {
         }
         return con;
     }
-
+//    private void saveAutomobile(Automobile automobile) {
+//        String query = "INSERT INTO `automobiles` (`manufacturer`, `model`, `release_Year`) VALUES (?, ?, ?)";
+//        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Automobiles_list", "root", "");
+//             PreparedStatement pst = con.prepareStatement(query)) {
+//            pst.setString(1, automobile.getManufacturer());
+//            pst.setString(2, automobile.getModel());
+//            pst.setInt(3, automobile.getReleaseYear());
+//            pst.executeUpdate();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//
+//        }
+//    }
 }
