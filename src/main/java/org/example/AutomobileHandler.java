@@ -72,6 +72,7 @@ public class AutomobileHandler implements HttpHandler {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println(e);
             sendResponse(exchange, "Failed to create automobile", 500);
         }
     }

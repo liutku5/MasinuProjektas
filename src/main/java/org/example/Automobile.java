@@ -67,24 +67,6 @@ public class Automobile {
         return auto;
     }
 
-
-    public static void createAutomobile(String manufacturer, String model, int release_Year) {
-
-        String query = "INSERT INTO `automobiles`(`manufacturer`, `model`, `release_Year`) VALUES (?, ?, ?)";
-        try {
-            Connection con = Main.connect();
-            PreparedStatement pst = con.prepareStatement(query);
-            pst.setString(1, manufacturer);
-            pst.setString(2, model);
-            pst.setInt(3, release_Year);
-            pst.executeUpdate();
-            con.close();
-            pst.close();
-        } catch (Exception e) {
-            System.out.println("Failed to add automobile to the list!");
-        }
-    }
-
     public void updateAutomobile() {
         String query = "UPDATE `automobiles` SET `manufacturer`= ? ,`model`= ? ,`release_Year`= ? WHERE id = ?";
         try {
@@ -102,19 +84,6 @@ public class Automobile {
         }
     }
 
-    public static void deleteAutomobile(long id) {
-        String query = "DELETE FROM `automobiles` WHERE id = ?";
-        try {
-            Connection con = Main.connect();
-            PreparedStatement pst = con.prepareStatement(query);
-            pst.setLong(1, id);
-            pst.executeUpdate();
-            con.close();
-            pst.close();
-        } catch (Exception e) {
-            System.out.println("Failed to delete automobiles!");
-        }
-    }
 
     public long getId() {
         return id;
