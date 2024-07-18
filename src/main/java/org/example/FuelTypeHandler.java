@@ -47,14 +47,12 @@ public class FuelTypeHandler implements HttpHandler {
     }
 
     private void handleCreateFuelType(HttpExchange exchange) throws IOException {
-        System.out.println("create");
         InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), "utf-8");
         BufferedReader br = new BufferedReader(isr);
         StringBuilder json = new StringBuilder();
         String line;
         while ((line = br.readLine()) != null) {
             json.append(line);
-            System.out.println(line);
         }
         br.close();
         isr.close();

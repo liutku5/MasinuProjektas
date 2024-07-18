@@ -45,24 +45,24 @@ public class AutomobileHandler implements HttpHandler {
     }
 
     private void handleCreateAutomobile(HttpExchange exchange) throws IOException {
-        System.out.println("create");
         InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), "utf-8");
         BufferedReader br = new BufferedReader(isr);
         StringBuilder json = new StringBuilder();
         String line;
         while ((line = br.readLine()) != null) {
             json.append(line);
-            System.out.println(line);
         }
         br.close();
         isr.close();
 
         Automobile newAutomobile = gson.fromJson(json.toString(), Automobile.class);
-        String query = "INSERT INTO `automobiles` (manufacturer, model, release_Year) VALUES (?, ?, ?)";
+//        newAutomobile.setFuelTypeId(1);
+        String query = "INSERT INTO `automobiles` (manufacturer, model, release_Year,fuel_type_id) VALUES (?, ?, ?, ?)";
         try (Connection con = Main.connect(); PreparedStatement pst = con.prepareStatement(query)) {
             pst.setString(1, newAutomobile.getManufacturer());
             pst.setString(2, newAutomobile.getModel());
             pst.setInt(3, newAutomobile.getReleaseYear());
+            pst.setLong(4, newAutomobile.getFuelTypeId());
             int rowsAffected = pst.executeUpdate();
             if (rowsAffected > 0) {
                 String response = "Automobile has been created successfully";

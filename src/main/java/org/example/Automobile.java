@@ -14,6 +14,7 @@ public class Automobile {
     private String manufacturer;
     private String model;
     private int releaseYear;
+    private long fuelTypeId;
 
     public Automobile() {
     }
@@ -23,6 +24,14 @@ public class Automobile {
         this.manufacturer = manufacturer;
         this.model = model;
         this.releaseYear = releaseYear;
+    }
+
+    public long getFuelTypeId() {
+        return fuelTypeId;
+    }
+
+    public void setFuelTypeId(long fuelTypeId) {
+        this.fuelTypeId = fuelTypeId;
     }
 
     public static ArrayList<Automobile> selectAll() {

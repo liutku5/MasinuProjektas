@@ -66,12 +66,13 @@ public class FuelType {
             Connection con = Main.connect();
             PreparedStatement pst = con.prepareStatement(query);
             pst.setString(1, this.type);
-            pst.setLong(4, this.id);
+            pst.setLong(2, this.id);
             pst.executeUpdate();
             con.close();
             pst.close();
         } catch (Exception e) {
-            System.out.println("Failed to update Fuel type!");
+            System.out.println(e);
+            System.out.println("Failed to update Fuel type!!");
         }
     }
 
